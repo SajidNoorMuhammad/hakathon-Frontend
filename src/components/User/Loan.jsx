@@ -1,32 +1,65 @@
-import React from "react";
+"use client";
+
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import React, { useState } from "react";
+import { AppRoutes } from "@/constant/constant";
+import { useUser } from "@/context/UserContext";
 
 const LoanPage = () => {
+    const router = useRouter();
+    const { user, setUser } = useUser(); // Access UserContext
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [formData, setFormData] = useState({ cnic: "", name: "", email: "" });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    console.log(user)
     const loans = [
         {
             title: "Wedding Loan",
             description:
                 "Plan your dream wedding with ease. Get a loan tailored for all your wedding needs.",
-            image: "/loan-image.jpg", // Replace with actual image URL
+            image: "/loan-image.jpg",
         },
         {
             title: "Home Construction Loan",
             description:
                 "Build your dream home with our easy and flexible construction loans.",
-            image: "/loan-image.jpg", // Replace with actual image URL
-        },
-        {
-            title: "Business Startup Loan",
-            description:
-                "Kickstart your business idea with financial assistance to turn dreams into reality.",
-            image: "/loan-image.jpg", // Replace with actual image URL
-        },
-        {
-            title: "Education Loan",
-            description:
-                "Invest in your future with our affordable education loans for students.",
-            image: "/loan-image.jpg", // Replace with actual image URL
+            image: "/loan-image.jpg",
         },
     ];
+
+    const handleInputChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const obj = {
+            cnic: e.target.value,
+            name: e.target.value,
+            email: e.target.value
+        }
+
+        try {
+            axios.post(AppRoutes.register, obj)
+                .then((res) => {
+                    console.log(res)
+                })
+            // setUser(response?.data?.user);
+            // console.log(user)
+            setIsModalOpen(false);
+        } catch (error) {
+            console.log(error)
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-100 py-10">
@@ -54,7 +87,113 @@ const LoanPage = () => {
                         </div>
                     ))}
                 </div>
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="mt-6 px-4 py-2 bg-teal-600 text-white rounded-md"
+                >
+                    Apply for loan
+                </button>
             </div>
+
+            {/* Modal for user input */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-96">
+                        <h2 className="text-2xl font-bold text-center mb-4">
+                            Apply for Loan
+                        </h2>
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label
+                                    htmlFor="cnic"
+                                    className="block text-sm font-semibold text-gray-700"
+                                >
+                                    CNIC
+                                </label>
+                                <input
+                                    type="text"
+                                    id="cnic"
+                                    name="cnic"
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label
+                                    htmlFor="name"
+                                    className="block text-sm font-semibold text-gray-700"
+                                >
+                                    Name
+                                </label>
+                                <input
+                                    type="text"
+                                    id="name"
+                                    name="name"
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label
+                                    htmlFor="email"
+                                    className="block text-sm font-semibold text-gray-700"
+                                >
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    required
+                                />
+                            </div>
+
+                            {error && (
+                                <p className="text-red-500 text-sm text-center mb-4">
+                                    {error}
+                                </p>
+                            )}
+
+                            <button
+                                type="submit"
+                                className="w-full bg-teal-600 text-white py-2 rounded-md"
+                                disabled={loading}
+                            >
+                                {loading ? "Submitting..." : "Submit"}
+                            </button>
+                        </form>
+
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="mt-4 text-teal-600 underline"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Display user data from context */}
+            {user && (
+                <div className="mt-6 p-4 bg-teal-100 rounded-md">
+                    <h2 className="text-xl font-bold text-teal-700">
+                        Registration Successful
+                    </h2>
+                    <p>
+                        <strong>CNIC:</strong> {user.cnic}
+                    </p>
+                    <p>
+                        <strong>Email:</strong> {user.email}
+                    </p>
+                    <p>
+                        <strong>Generated Password:</strong> {user.password}
+                    </p>
+                </div>
+            )}
         </div>
     );
 };
